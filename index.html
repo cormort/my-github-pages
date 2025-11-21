@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>我的 GitHub Pages 專案入口 🌟</title>
+    <style>
+        /* 基礎設置和字體 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5; 
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            min-height: 100vh; /* 確保背景鋪滿整個視窗 */
+        }
+
+        /* 標題區域 */
+        .header {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 1000px; /* 限制寬度，避免在大螢幕上太寬 */
+            margin: 20px auto 40px auto; 
+        }
+
+        h1 {
+            color: #0366d6; 
+            font-size: clamp(1.8em, 5vw, 2.5em); /* 使用 clamp 實現流體字體大小 */
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: clamp(1em, 2vw, 1.1em); /* 使用 clamp 實現流體字體大小 */
+            color: #6a737d;
+        }
+
+        /* 專案容器 (CSS Grid 佈局) */
+        .project-container {
+            /* 讓欄位寬度自動適應，最小 250px，最大 1fr (均分剩餘空間) */
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 20px; 
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px; /* 增加左右邊距 */
+        }
+
+        /* 專案按鈕樣式 */
+        .project-button {
+            display: block; 
+            background-color: #ffffff;
+            color: #0366d6;
+            padding: 25px 15px; /* 調整左右 padding 避免字體太寬 */
+            border: 2px solid #0366d6;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 1.1em; /* 稍微調整字體大小，避免手機上過大 */
+            font-weight: 600;
+            transition: all 0.3s ease-in-out; 
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            word-break: break-word; /* 防止長專案名稱溢出 */
+        }
+
+        /* 按鈕懸停效果 (不變) */
+        .project-button:hover {
+            background-color: #0366d6; 
+            color: white; 
+            transform: translateY(-5px); 
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            border-color: #0366d6;
+        }
+
+        /* 載入中/錯誤訊息 */
+        .message {
+            font-size: 1.2em;
+            color: #6a737d;
+            margin-top: 50px;
+        }
+
+        /* RWD 媒體查詢優化 */
+        /* 當螢幕寬度小於 768px 時 (平板) */
+        @media (max-width: 768px) {
+            .project-container {
+                gap: 15px;
+                padding: 0 15px;
+            }
+        }
+        
+        /* 當螢幕寬度小於 500px 時 (手機) */
+        @media (max-width: 500px) {
+            .project-container {
+                /* 讓 Grid 佈局在小螢幕時自動變成單欄 */
+                grid-template-columns: 1fr; 
+                gap: 10px;
+            }
+            .header {
+                padding: 15px;
+                margin: 10px auto 30px auto; 
+            }
+            .project-button {
+                padding: 20px 10px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="header">
+        <h1>🚀 我的 GitHub Pages 專案一覽</h1>
+        <p>點擊下方按鈕，即可前往查看個別專案的公開頁面。</p>
+    </div>
+    
+    <div id="projects-list" class="project-container">
+        <div class="message">正在從 GitHub 載入您的專案清單...</div>
+    </div>
+
+    <script>
+        // 🚨 將 'YOUR_GITHUB_USERNAME' 替換成您的 GitHub 用戶名
+        const GITHUB_USERNAME = 'cormort'; 
+        const API_URL = `https://api.github.com/users/${GITHUB_USERNAME}/repos`;
+        const PAGES_BASE_URL = `https://${GITHUB_USERNAME}.github.io`; 
+
+        const projectsList = document.getElementById('projects-list');
+
+        fetch(API_URL)
+            .then(response => {
+                if (response.status === 403) {
+                    throw new Error('API 速率限制已達上限，請稍後再試。');
+                }
+                return response.json();
+            })
+            .then(data => {
+                projectsList.innerHTML = ''; 
+                
+                if (!Array.isArray(data) || data.length === 0) {
+                    projectsList.innerHTML = '<div class="message">找不到任何公開的專案。</div>';
+                    return;
+                }
+
+                data.forEach(repo => {
+                    const repoName = repo.name;
+                    
+                    if (repoName.toLowerCase() === GITHUB_USERNAME.toLowerCase()) {
+                        return; 
+                    }
+
+                    const repoURL = `${PAGES_BASE_URL}/${repoName}/`; 
+                    
+                    const button = document.createElement('a');
+                    button.textContent = repoName;
+                    button.href = repoURL;
+                    button.target = '_blank'; 
+                    button.className = 'project-button';
+                    
+                    projectsList.appendChild(button);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                projectsList.innerHTML = `<div class="message">載入專案時發生錯誤：${error.message || '無法連線到 GitHub API。'}</div>`;
+            });
+    </script>
+
+</body>
+</html>
