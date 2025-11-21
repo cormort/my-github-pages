@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>我的 GitHub Pages 專案入口 🌟</title>
+    <title>我的 Pages 與 Spaces 入口 🌟</title>
     <style>
+        /* (CSS 樣式保持不變，維持美觀與 RWD) */
         /* 基礎設置和字體 */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -13,7 +14,7 @@
             margin: 0;
             padding: 20px;
             text-align: center;
-            min-height: 100vh; /* 確保背景鋪滿整個視窗 */
+            min-height: 100vh;
         }
 
         /* 標題區域 */
@@ -23,50 +24,71 @@
             background-color: #ffffff;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            max-width: 1000px; /* 限制寬度，避免在大螢幕上太寬 */
+            max-width: 1000px;
             margin: 20px auto 40px auto; 
         }
 
         h1 {
             color: #0366d6; 
-            font-size: clamp(1.8em, 5vw, 2.5em); /* 使用 clamp 實現流體字體大小 */
+            font-size: clamp(1.8em, 5vw, 2.5em); 
             margin-bottom: 10px;
         }
 
         p {
-            font-size: clamp(1em, 2vw, 1.1em); /* 使用 clamp 實現流體字體大小 */
+            font-size: clamp(1em, 2vw, 1.1em); 
             color: #6a737d;
+        }
+
+        /* 分組標題 */
+        h2 {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            color: #212529;
+            border-bottom: 3px solid #dee2e6;
+            display: inline-block;
+            padding-bottom: 5px;
         }
 
         /* 專案容器 (CSS Grid 佈局) */
         .project-container {
-            /* 讓欄位寬度自動適應，最小 250px，最大 1fr (均分剩餘空間) */
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
             gap: 20px; 
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px; /* 增加左右邊距 */
+            padding: 0 20px; 
         }
 
-        /* 專案按鈕樣式 */
+        /* 按鈕樣式 (為區分，我們新增一個 HF 顏色) */
         .project-button {
             display: block; 
             background-color: #ffffff;
-            color: #0366d6;
-            padding: 25px 15px; /* 調整左右 padding 避免字體太寬 */
+            color: #0366d6; /* GitHub 藍 */
+            padding: 25px 15px; 
             border: 2px solid #0366d6;
             border-radius: 10px;
             text-decoration: none;
-            font-size: 1.1em; /* 稍微調整字體大小，避免手機上過大 */
+            font-size: 1.1em; 
             font-weight: 600;
             transition: all 0.3s ease-in-out; 
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
             text-align: center;
-            word-break: break-word; /* 防止長專案名稱溢出 */
+            word-break: break-word; 
         }
 
-        /* 按鈕懸停效果 (不變) */
+        .hf-button {
+            border-color: #f89617; /* Hugging Face 橘 */
+            color: #f89617;
+        }
+        
+        .hf-button:hover {
+            background-color: #f89617;
+            color: white;
+            border-color: #f89617;
+            transform: translateY(-5px); 
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+        
         .project-button:hover {
             background-color: #0366d6; 
             color: white; 
@@ -82,19 +104,15 @@
             margin-top: 50px;
         }
 
-        /* RWD 媒體查詢優化 */
-        /* 當螢幕寬度小於 768px 時 (平板) */
+        /* RWD 媒體查詢優化 (保持不變) */
         @media (max-width: 768px) {
             .project-container {
                 gap: 15px;
                 padding: 0 15px;
             }
         }
-        
-        /* 當螢幕寬度小於 500px 時 (手機) */
         @media (max-width: 500px) {
             .project-container {
-                /* 讓 Grid 佈局在小螢幕時自動變成單欄 */
                 grid-template-columns: 1fr; 
                 gap: 10px;
             }
@@ -112,59 +130,95 @@
 <body>
     
     <div class="header">
-        <h1>🚀 我的 GitHub Pages 專案一覽</h1>
-        <p>點擊下方按鈕，即可前往查看個別專案的公開頁面。</p>
+        <h1>🚀 我的 GitHub Pages 與 Spaces</h1>
+        <p>點擊下方按鈕，即可前往查看我的公開專案頁面與 AI 應用。</p>
+    </div>
+
+    <h2><span style="color:#0366d6;">GitHub Pages 專案</span></h2>
+    <div id="github-projects-list" class="project-container">
+        <div class="message">正在從 GitHub 載入您的專案清單...</div>
     </div>
     
-    <div id="projects-list" class="project-container">
-        <div class="message">正在從 GitHub 載入您的專案清單...</div>
+    <h2><span style="color:#f89617;">Hugging Face Spaces</span></h2>
+    <div id="huggingface-spaces-list" class="project-container">
+        <div class="message" id="hf-loading-message">載入中...</div>
     </div>
 
     <script>
-        // 🚨 將 'YOUR_GITHUB_USERNAME' 替換成您的 GitHub 用戶名
-        const GITHUB_USERNAME = 'cormort'; 
+        // 🚨 1. GitHub 配置
+        const GITHUB_USERNAME = 'cormort'; // 替換成您的 GitHub 用戶名
         const API_URL = `https://api.github.com/users/${GITHUB_USERNAME}/repos`;
         const PAGES_BASE_URL = `https://${GITHUB_USERNAME}.github.io`; 
 
-        const projectsList = document.getElementById('projects-list');
+        // 🚨 2. Hugging Face 配置 (手動維護列表)
+        const HUGGINGFACE_SPACES = [
+            // 範例格式：
+            // { name: "我的聊天機器人", url: "https://huggingface.co/spaces/YOUR_USERNAME/chatbot-app" },
+            // { name: "數據視覺化", url: "https://huggingface.co/spaces/YOUR_USERNAME/data-viz-tool" },
+            
+            // 請將此處替換為您的 Spaces 列表：
+            { name: "極速文件掃描器", url: "https://huggingface.co/spaces/cormort/image_correct" },
+            { name: "音樂比對分析器", url: "https://huggingface.co/spaces/cormort/pitch-analyzer" },
+            
+        ];
+        
+        const githubProjectsList = document.getElementById('github-projects-list');
+        const huggingfaceSpacesList = document.getElementById('huggingface-spaces-list');
 
+        // === 函式：創建按鈕 ===
+        function createButton(name, url, isHuggingFace = false) {
+            const button = document.createElement('a');
+            button.textContent = name;
+            button.href = url;
+            button.target = '_blank';
+            button.className = isHuggingFace ? 'project-button hf-button' : 'project-button';
+            return button;
+        }
+
+        // === 步驟 1：載入 GitHub 專案 ===
         fetch(API_URL)
             .then(response => {
                 if (response.status === 403) {
-                    throw new Error('API 速率限制已達上限，請稍後再試。');
+                    throw new Error('API 速率限制已達上限。');
                 }
                 return response.json();
             })
             .then(data => {
-                projectsList.innerHTML = ''; 
+                githubProjectsList.innerHTML = ''; 
                 
                 if (!Array.isArray(data) || data.length === 0) {
-                    projectsList.innerHTML = '<div class="message">找不到任何公開的專案。</div>';
+                    githubProjectsList.innerHTML = '<div class="message">找不到任何 GitHub Pages 專案。</div>';
                     return;
                 }
 
                 data.forEach(repo => {
                     const repoName = repo.name;
-                    
+                    // 排除入口網頁本身
                     if (repoName.toLowerCase() === GITHUB_USERNAME.toLowerCase()) {
                         return; 
                     }
-
                     const repoURL = `${PAGES_BASE_URL}/${repoName}/`; 
-                    
-                    const button = document.createElement('a');
-                    button.textContent = repoName;
-                    button.href = repoURL;
-                    button.target = '_blank'; 
-                    button.className = 'project-button';
-                    
-                    projectsList.appendChild(button);
+                    const button = createButton(repoName, repoURL, false);
+                    githubProjectsList.appendChild(button);
                 });
             })
             .catch(error => {
-                console.error('Error fetching data:', error);
-                projectsList.innerHTML = `<div class="message">載入專案時發生錯誤：${error.message || '無法連線到 GitHub API。'}</div>`;
+                console.error('Error fetching GitHub data:', error);
+                githubProjectsList.innerHTML = `<div class="message">載入 GitHub 專案時發生錯誤。</div>`;
             });
+            
+        // === 步驟 2：載入 Hugging Face Spaces (手動) ===
+        // 由於是手動列表，我們可以直接渲染
+        document.getElementById('hf-loading-message').remove(); // 移除載入中訊息
+        
+        if (HUGGINGFACE_SPACES.length === 0) {
+            huggingfaceSpacesList.innerHTML = '<div class="message">目前沒有 Hugging Face Spaces。</div>';
+        } else {
+            HUGGINGFACE_SPACES.forEach(space => {
+                const button = createButton(space.name, space.url, true); // 設置為 true 啟用 HF 樣式
+                huggingfaceSpacesList.appendChild(button);
+            });
+        }
     </script>
 
 </body>
