@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>我的 Pages 與 Spaces 入口 🌟</title>
     <style>
-        /* (CSS 樣式保持不變，維持美觀與 RWD) */
         /* 基礎設置和字體 */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -59,11 +58,11 @@
             padding: 0 20px; 
         }
 
-        /* 按鈕樣式 (為區分，我們新增一個 HF 顏色) */
+        /* 按鈕樣式 */
         .project-button {
             display: block; 
             background-color: #ffffff;
-            color: #0366d6; /* GitHub 藍 */
+            color: #0366d6; 
             padding: 25px 15px; 
             border: 2px solid #0366d6;
             border-radius: 10px;
@@ -73,11 +72,12 @@
             transition: all 0.3s ease-in-out; 
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
             text-align: center;
-            word-break: break-word; 
+            word-break: break-word;
+            position: relative; /* Tooltip 定位用 */
         }
 
         .hf-button {
-            border-color: #f89617; /* Hugging Face 橘 */
+            border-color: #f89617; 
             color: #f89617;
         }
         
@@ -97,6 +97,47 @@
             border-color: #0366d6;
         }
 
+        /* === Tooltip 樣式 === */
+        .project-button[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            white-space: normal;
+            width: max-content;
+            max-width: 220px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        .project-button[data-tooltip]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 95%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+            z-index: 100;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, 10px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
         /* 載入中/錯誤訊息 */
         .message {
             font-size: 1.2em;
@@ -104,7 +145,7 @@
             margin-top: 50px;
         }
 
-        /* RWD 媒體查詢優化 (保持不變) */
+        /* RWD 媒體查詢優化 */
         @media (max-width: 768px) {
             .project-container {
                 gap: 15px;
@@ -124,11 +165,16 @@
                 padding: 20px 10px;
                 font-size: 1em;
             }
+            /* 手機版隱藏 CSS Tooltip */
+            .project-button[data-tooltip]:hover::after,
+            .project-button[data-tooltip]:hover::before {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
-    
+
     <div class="header">
         <h1>🚀 我的 GitHub Pages 與 Spaces</h1>
         <p>點擊下方按鈕，即可前往查看我的公開專案頁面與 AI 應用。</p>
@@ -138,7 +184,7 @@
     <div id="github-projects-list" class="project-container">
         <div class="message">正在從 GitHub 載入您的專案清單...</div>
     </div>
-    
+
     <h2><span style="color:#f89617;">Hugging Face Spaces</span></h2>
     <div id="huggingface-spaces-list" class="project-container">
         <div class="message" id="hf-loading-message">載入中...</div>
@@ -146,32 +192,39 @@
 
     <script>
         // 🚨 1. GitHub 配置
-        const GITHUB_USERNAME = 'cormort'; // 替換成您的 GitHub 用戶名
+        const GITHUB_USERNAME = 'cormort'; 
         const API_URL = `https://api.github.com/users/${GITHUB_USERNAME}/repos`;
         const PAGES_BASE_URL = `https://${GITHUB_USERNAME}.github.io`; 
-
+        
         // 🚨 2. Hugging Face 配置 (手動維護列表)
         const HUGGINGFACE_SPACES = [
-            // 範例格式：
-            // { name: "我的聊天機器人", url: "https://huggingface.co/spaces/YOUR_USERNAME/chatbot-app" },
-            // { name: "數據視覺化", url: "https://huggingface.co/spaces/YOUR_USERNAME/data-viz-tool" },
-            
-            // 請將此處替換為您的 Spaces 列表：
-            { name: "極速文件掃描器", url: "https://huggingface.co/spaces/cormort/image_correct" },
-            { name: "音樂比對分析器", url: "https://huggingface.co/spaces/cormort/pitch-analyzer" },
-            
+            { 
+                name: "極速文件掃描器", 
+                url: "https://huggingface.co/spaces/cormort/image_correct",
+                desc: "快速校正歪斜的文件照片，提升閱讀體驗" 
+            },
+            { 
+                name: "音樂比對分析器", 
+                url: "https://huggingface.co/spaces/cormort/pitch-analyzer",
+                desc: "分析音高與旋律，進行精準的音樂比對" 
+            },
         ];
-        
+
         const githubProjectsList = document.getElementById('github-projects-list');
         const huggingfaceSpacesList = document.getElementById('huggingface-spaces-list');
 
         // === 函式：創建按鈕 ===
-        function createButton(name, url, isHuggingFace = false) {
+        function createButton(name, url, description, isHuggingFace = false) {
             const button = document.createElement('a');
             button.textContent = name;
             button.href = url;
             button.target = '_blank';
             button.className = isHuggingFace ? 'project-button hf-button' : 'project-button';
+            
+            const tooltipText = description ? description : "點擊前往查看詳情";
+            button.setAttribute('data-tooltip', tooltipText);
+            button.title = tooltipText; // 手機版備用
+
             return button;
         }
 
@@ -191,14 +244,24 @@
                     return;
                 }
 
+                // ✨ 定義要排除的專案名稱清單 (全小寫)
+                const EXCLUDED_REPOS = [
+                    GITHUB_USERNAME.toLowerCase(), // 預設的 username.github.io
+                    'my-github-pages'              // 入口網頁本身
+                ];
+
                 data.forEach(repo => {
                     const repoName = repo.name;
-                    // 排除入口網頁本身
-                    if (repoName.toLowerCase() === GITHUB_USERNAME.toLowerCase()) {
+                    
+                    // ✨ 檢查是否在排除清單中
+                    if (EXCLUDED_REPOS.includes(repoName.toLowerCase())) {
                         return; 
                     }
+
                     const repoURL = `${PAGES_BASE_URL}/${repoName}/`; 
-                    const button = createButton(repoName, repoURL, false);
+                    const repoDesc = repo.description; 
+
+                    const button = createButton(repoName, repoURL, repoDesc, false);
                     githubProjectsList.appendChild(button);
                 });
             })
@@ -208,14 +271,13 @@
             });
             
         // === 步驟 2：載入 Hugging Face Spaces (手動) ===
-        // 由於是手動列表，我們可以直接渲染
-        document.getElementById('hf-loading-message').remove(); // 移除載入中訊息
+        document.getElementById('hf-loading-message').remove(); 
         
         if (HUGGINGFACE_SPACES.length === 0) {
             huggingfaceSpacesList.innerHTML = '<div class="message">目前沒有 Hugging Face Spaces。</div>';
         } else {
             HUGGINGFACE_SPACES.forEach(space => {
-                const button = createButton(space.name, space.url, true); // 設置為 true 啟用 HF 樣式
+                const button = createButton(space.name, space.url, space.desc, true); 
                 huggingfaceSpacesList.appendChild(button);
             });
         }
