@@ -1,104 +1,230 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>我的 Pages 與 Spaces 入口 🌟</title>
+    <title>Cormort 的專案空間 🌟</title>
     <style>
-        /* 基礎設置和字體 */
+        /* === 1. 全域基礎設定 === */
+        :root {
+            --primary-color: #0366d6;  /* GitHub 藍 */
+            --accent-color: #f89617;   /* Hugging Face 橘 */
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-main: #24292e;
+            --text-sub: #586069;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5; 
-            color: #333;
+            background-color: var(--bg-color); 
+            color: var(--text-main);
             margin: 0;
             padding: 20px;
             text-align: center;
             min-height: 100vh;
         }
 
-        /* 標題區域 */
+        /* === 2. 標題區 === */
         .header {
-            margin-bottom: 40px;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            padding: 30px 20px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             max-width: 1000px;
-            margin: 20px auto 40px auto; 
+            margin: 20px auto 30px auto; 
         }
 
         h1 {
-            color: #0366d6; 
+            color: var(--primary-color); 
             font-size: clamp(1.8em, 5vw, 2.5em); 
-            margin-bottom: 10px;
+            margin: 0 0 10px 0;
         }
 
         p {
             font-size: clamp(1em, 2vw, 1.1em); 
-            color: #6a737d;
+            color: var(--text-sub);
+            margin: 0;
         }
 
-        /* 分組標題 */
-        h2 {
-            margin-top: 40px;
-            margin-bottom: 20px;
-            color: #212529;
-            border-bottom: 3px solid #dee2e6;
-            display: inline-block;
-            padding-bottom: 5px;
+        /* === 3. 頁籤 (Tabs) 設計 === */
+        .tabs-container {
+            max-width: 1000px;
+            margin: 0 auto 30px auto;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            border-bottom: 2px solid #e1e4e8;
+            padding-bottom: 0;
         }
 
-        /* 專案容器 (CSS Grid 佈局) */
+        .tab-btn {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--text-sub);
+            background: none;
+            border: none;
+            border-bottom: 4px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: -2px; /* 讓底線蓋過容器底線 */
+        }
+
+        .tab-btn:hover {
+            color: var(--primary-color);
+            background-color: rgba(3, 102, 214, 0.05);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        /* 隱藏所有內容區塊，只顯示 active 的 */
+        .tab-content {
+            display: none;
+            animation: fadeInContent 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeInContent {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === 4. 卡片與容器 (共用樣式) === */
         .project-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
             gap: 20px; 
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px; 
+            padding: 0 10px; 
         }
 
-        /* 按鈕樣式 */
+        /* 小標題 */
+        .section-title {
+            margin: 40px 0 20px 0;
+            color: var(--text-main);
+            border-bottom: 3px solid #dee2e6;
+            display: inline-block;
+            padding-bottom: 5px;
+            font-size: 1.5em;
+        }
+
+        /* === 5. 我的專案按鈕樣式 === */
         .project-button {
-            display: block; 
-            background-color: #ffffff;
-            color: #0366d6; 
-            padding: 25px 15px; 
-            border: 2px solid #0366d6;
-            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--card-bg);
+            color: var(--primary-color); 
+            padding: 25px 20px; 
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
             text-decoration: none;
-            font-size: 1.1em; 
+            font-size: 1.2em; 
             font-weight: 600;
-            transition: all 0.3s ease-in-out; 
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            word-break: break-word;
-            position: relative; /* Tooltip 定位用 */
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            position: relative;
         }
 
         .hf-button {
-            border-color: #f89617; 
-            color: #f89617;
-        }
-        
-        .hf-button:hover {
-            background-color: #f89617;
-            color: white;
-            border-color: #f89617;
-            transform: translateY(-5px); 
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            border-color: var(--accent-color); 
+            color: var(--accent-color);
         }
         
         .project-button:hover {
-            background-color: #0366d6; 
-            color: white; 
             transform: translateY(-5px); 
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-            border-color: #0366d6;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            color: white;
+        }
+        
+        .project-button:not(.hf-button):hover {
+            background-color: var(--primary-color);
         }
 
-        /* === Tooltip 樣式 === */
-        .project-button[data-tooltip]:hover::after {
+        .hf-button:hover {
+            background-color: var(--accent-color);
+        }
+
+        /* === 6. 搜尋結果樣式 === */
+        .search-box {
+            margin: 0 auto 40px auto;
+            max-width: 600px;
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background-color: #2ea44f; /* GitHub Green */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+
+        .search-btn:hover {
+            background-color: #2c974b;
+            transform: translateY(-2px);
+        }
+
+        .repo-card {
+            background-color: var(--card-bg);
+            padding: 20px; 
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            text-align: left;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            min-height: 120px;
+        }
+
+        .repo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-color: var(--primary-color);
+        }
+
+        .repo-name { font-size: 1.2em; font-weight: 700; color: var(--primary-color); margin-bottom: 5px; word-break: break-all; }
+        .repo-owner { font-size: 0.9em; color: var(--text-sub); margin-bottom: 10px; }
+        .repo-stats { margin-top: auto; font-size: 0.9em; color: var(--text-sub); display: flex; align-items: center; }
+        .star-icon { color: #f1e05a; margin-right: 5px; }
+
+        /* === 7. Tooltip (通用) === */
+        [data-tooltip]:hover::after {
             content: attr(data-tooltip);
             position: absolute;
             bottom: 105%;
@@ -111,15 +237,15 @@
             font-size: 0.85em;
             white-space: normal;
             width: max-content;
-            max-width: 220px;
+            max-width: 240px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             z-index: 100;
             pointer-events: none;
-            opacity: 0;
             animation: fadeIn 0.3s forwards;
         }
-
-        .project-button[data-tooltip]:hover::before {
+        
+        /* Tooltip 箭頭 */
+        [data-tooltip]:hover::before {
             content: '';
             position: absolute;
             bottom: 95%;
@@ -129,7 +255,6 @@
             border-style: solid;
             border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
             z-index: 100;
-            opacity: 0;
             animation: fadeIn 0.3s forwards;
         }
 
@@ -138,65 +263,78 @@
             to { opacity: 1; transform: translate(-50%, 0); }
         }
 
-        /* 載入中/錯誤訊息 */
-        .message {
-            font-size: 1.2em;
-            color: #6a737d;
-            margin-top: 50px;
-        }
+        .message { font-size: 1.2em; color: var(--text-sub); margin-top: 40px; }
 
-        /* RWD 媒體查詢優化 */
-        @media (max-width: 768px) {
-            .project-container {
-                gap: 15px;
-                padding: 0 15px;
-            }
-        }
-        @media (max-width: 500px) {
-            .project-container {
-                grid-template-columns: 1fr; 
-                gap: 10px;
-            }
-            .header {
-                padding: 15px;
-                margin: 10px auto 30px auto; 
-            }
-            .project-button {
-                padding: 20px 10px;
-                font-size: 1em;
-            }
-            /* 手機版隱藏 CSS Tooltip */
-            .project-button[data-tooltip]:hover::after,
-            .project-button[data-tooltip]:hover::before {
-                display: none;
-            }
+        /* RWD */
+        @media (max-width: 600px) {
+            .search-box { flex-direction: column; padding: 0 10px; }
+            .search-btn { width: 100%; }
+            [data-tooltip]:hover::after, [data-tooltip]:hover::before { display: none; } /* 手機隱藏 Tooltip */
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🚀 我的 GitHub Pages 與 Spaces</h1>
-        <p>點擊下方按鈕，即可前往查看我的公開專案頁面與 AI 應用。</p>
+        <h1>🚀 Cormort 的專案空間</h1>
+        <p>我的個人作品集與開源專案探索</p>
     </div>
 
-    <h2><span style="color:#0366d6;">GitHub Pages 專案</span></h2>
-    <div id="github-projects-list" class="project-container">
-        <div class="message">正在從 GitHub 載入您的專案清單...</div>
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchTab('my-projects')">📁 我的專案</button>
+        <button class="tab-btn" onclick="switchTab('global-search')">🔍 搜尋大神</button>
     </div>
 
-    <h2><span style="color:#f89617;">Hugging Face Spaces</span></h2>
-    <div id="huggingface-spaces-list" class="project-container">
-        <div class="message" id="hf-loading-message">載入中...</div>
+    <div id="my-projects" class="tab-content active">
+        
+        <h2 class="section-title"><span style="color:var(--primary-color);">GitHub Pages</span></h2>
+        <div id="github-projects-list" class="project-container">
+            <div class="message">正在載入...</div>
+        </div>
+
+        <h2 class="section-title"><span style="color:var(--accent-color);">Hugging Face Spaces</span></h2>
+        <div id="huggingface-spaces-list" class="project-container">
+            </div>
+    </div>
+
+    <div id="global-search" class="tab-content">
+        <div style="max-width: 600px; margin: 0 auto 20px auto; color: #586069;">
+            輸入關鍵字，尋找 GitHub 上星星數最高的熱門專案
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="輸入關鍵字 (例：python crawler, budget)...">
+            <button class="search-btn" onclick="searchRepos()">搜尋</button>
+        </div>
+
+        <div id="search-results-list" class="project-container">
+            <div class="message">請輸入關鍵字並按下搜尋... 🦕</div>
+        </div>
     </div>
 
     <script>
-        // 🚨 1. GitHub 配置
-        const GITHUB_USERNAME = 'cormort'; 
+        // ==============================
+        // 0. Tab 切換邏輯
+        // ==============================
+        function switchTab(tabId) {
+            // 移除所有按鈕的 active 狀態
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            // 隱藏所有內容
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 設定當前選中的按鈕與內容
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // ==============================
+        // 1. 個人專案邏輯 (GitHub + HF)
+        // ==============================
+        const GITHUB_USERNAME = 'cormort';
         const API_URL = `https://api.github.com/users/${GITHUB_USERNAME}/repos`;
         const PAGES_BASE_URL = `https://${GITHUB_USERNAME}.github.io`; 
-        
-        // 🚨 2. Hugging Face 配置 (手動維護列表)
+
+        // Hugging Face 列表
         const HUGGINGFACE_SPACES = [
             { 
                 name: "極速文件掃描器", 
@@ -208,18 +346,12 @@
                 url: "https://huggingface.co/spaces/cormort/pitch-analyzer",
                 desc: "分析音高與旋律，進行精準的音樂比對" 
             },
-            { 
-                name: "立委影片逐字稿", 
-                url: "https://huggingface.co/spaces/cormort/ivod-automation-center",
-                desc: "立法委員隨選影片逐字稿產生器" 
-            },
-            
         ];
 
         const githubProjectsList = document.getElementById('github-projects-list');
         const huggingfaceSpacesList = document.getElementById('huggingface-spaces-list');
 
-        // === 函式：創建按鈕 ===
+        // 創建按鈕函式 (共用)
         function createButton(name, url, description, isHuggingFace = false) {
             const button = document.createElement('a');
             button.textContent = name;
@@ -229,56 +361,41 @@
             
             const tooltipText = description ? description : "點擊前往查看詳情";
             button.setAttribute('data-tooltip', tooltipText);
-            button.title = tooltipText; // 手機版備用
+            button.title = tooltipText; 
 
             return button;
         }
 
-        // === 步驟 1：載入 GitHub 專案 ===
+        // 載入 GitHub
         fetch(API_URL)
             .then(response => {
-                if (response.status === 403) {
-                    throw new Error('API 速率限制已達上限。');
-                }
+                if (response.status === 403) throw new Error('API 速率限制已達上限。');
                 return response.json();
             })
             .then(data => {
-                githubProjectsList.innerHTML = ''; 
-                
+                githubProjectsList.innerHTML = '';
                 if (!Array.isArray(data) || data.length === 0) {
                     githubProjectsList.innerHTML = '<div class="message">找不到任何 GitHub Pages 專案。</div>';
                     return;
                 }
 
-                // ✨ 定義要排除的專案名稱清單 (全小寫)
-                const EXCLUDED_REPOS = [
-                    GITHUB_USERNAME.toLowerCase(), // 預設的 username.github.io
-                    'my-github-pages'              // 入口網頁本身
-                ];
+                const EXCLUDED_REPOS = [GITHUB_USERNAME.toLowerCase(), 'my-github-pages'];
 
                 data.forEach(repo => {
-                    const repoName = repo.name;
-                    
-                    // ✨ 檢查是否在排除清單中
-                    if (EXCLUDED_REPOS.includes(repoName.toLowerCase())) {
-                        return; 
-                    }
+                    if (EXCLUDED_REPOS.includes(repo.name.toLowerCase())) return;
 
-                    const repoURL = `${PAGES_BASE_URL}/${repoName}/`; 
+                    const repoURL = `${PAGES_BASE_URL}/${repo.name}/`; 
                     const repoDesc = repo.description; 
-
-                    const button = createButton(repoName, repoURL, repoDesc, false);
+                    const button = createButton(repo.name, repoURL, repoDesc, false);
                     githubProjectsList.appendChild(button);
                 });
             })
             .catch(error => {
-                console.error('Error fetching GitHub data:', error);
-                githubProjectsList.innerHTML = `<div class="message">載入 GitHub 專案時發生錯誤。</div>`;
+                console.error(error);
+                githubProjectsList.innerHTML = `<div class="message">載入失敗。</div>`;
             });
-            
-        // === 步驟 2：載入 Hugging Face Spaces (手動) ===
-        document.getElementById('hf-loading-message').remove(); 
-        
+
+        // 載入 Hugging Face
         if (HUGGINGFACE_SPACES.length === 0) {
             huggingfaceSpacesList.innerHTML = '<div class="message">目前沒有 Hugging Face Spaces。</div>';
         } else {
@@ -286,6 +403,73 @@
                 const button = createButton(space.name, space.url, space.desc, true); 
                 huggingfaceSpacesList.appendChild(button);
             });
+        }
+
+        // ==============================
+        // 2. 全域搜尋邏輯
+        // ==============================
+        const searchResultsList = document.getElementById('search-results-list');
+        const searchInput = document.getElementById('search-input');
+
+        searchInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") searchRepos();
+        });
+
+        async function searchRepos() {
+            const query = searchInput.value.trim();
+            if (!query) {
+                alert("請輸入搜尋關鍵字！");
+                return;
+            }
+
+            searchResultsList.innerHTML = '<div class="message">正在搜尋 GitHub 資料庫... ⏳</div>';
+            const SEARCH_API = `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=12`;
+
+            try {
+                const response = await fetch(SEARCH_API);
+                if (response.status === 403) throw new Error("搜尋太頻繁，請稍後再試");
+                if (!response.ok) throw new Error("網路連線問題");
+
+                const data = await response.json();
+                searchResultsList.innerHTML = '';
+
+                if (data.items.length === 0) {
+                    searchResultsList.innerHTML = '<div class="message">找不到相關專案 🦕</div>';
+                    return;
+                }
+
+                data.items.forEach(repo => {
+                    const card = document.createElement('a');
+                    card.className = 'repo-card';
+                    card.href = repo.html_url;
+                    card.target = '_blank';
+
+                    const description = repo.description ? repo.description : "無專案描述";
+                    const shortDesc = description.length > 100 ? description.substring(0, 100) + "..." : description;
+                    card.setAttribute('data-tooltip', shortDesc);
+                    card.title = shortDesc;
+
+                    card.innerHTML = `
+                        <div>
+                            <div class="repo-name">${repo.name}</div>
+                            <div class="repo-owner">👤 ${repo.owner.login}</div>
+                        </div>
+                        <div class="repo-stats">
+                            <span class="star-icon">★</span> ${formatNumber(repo.stargazers_count)}
+                            <span style="margin-left: 15px;">📅 ${new Date(repo.updated_at).toLocaleDateString()}</span>
+                        </div>
+                    `;
+                    searchResultsList.appendChild(card);
+                });
+            } catch (error) {
+                searchResultsList.innerHTML = `<div class="message">⚠️ ${error.message}</div>`;
+            }
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+            return num;
         }
     </script>
 
