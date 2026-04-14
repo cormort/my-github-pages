@@ -331,7 +331,7 @@
         // 1. 個人專案邏輯 (GitHub + HF)
         // ==============================
         const GITHUB_USERNAME = 'cormort';
-        const API_URL = `https://api.github.com/users/${GITHUB_USERNAME}/repos`;
+        const API_URL = `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&direction=desc&per_page=100`;
         const PAGES_BASE_URL = `https://${GITHUB_USERNAME}.github.io`; 
 
         // Hugging Face 列表
