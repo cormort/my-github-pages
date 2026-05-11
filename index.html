@@ -102,14 +102,14 @@
     .project-container {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
+        gap: 24px; /* 加大一點間距 */
         max-width: 1200px;
         margin: 0 auto;
         padding: 0 10px;
     }
 
     .section-title {
-        margin: 40px 0 20px 0;
+        margin: 40px 0 24px 0;
         color: var(--text-main);
         border-bottom: 3px solid #dee2e6;
         display: inline-block;
@@ -117,42 +117,59 @@
         font-size: 1.5em;
     }
 
-    /* === 5. 專案卡片（含 Page / Code 兩個按鈕） === */
+    /* === 5. 專案卡片（優化版） === */
     .project-card {
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        text-align: left; /* 改為左對齊 */
         background-color: var(--card-bg);
-        padding: 20px;
-        border: 2px solid var(--primary-color);
+        padding: 24px;
+        border: 1px solid #e1e4e8; /* 淺灰邊框 */
+        border-top: 4px solid var(--primary-color); /* 頂部強調線 */
         border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* 更柔和的陰影 */
         transition: all 0.3s ease;
-        gap: 15px;
         position: relative;
-        min-height: 130px;
+        min-height: 180px;
     }
 
     .project-card.hf-card {
-        border-color: var(--accent-color);
+        border-top: 4px solid var(--accent-color); /* HF 的專屬顏色 */
     }
 
     .project-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        border-color: #d1d5da;
     }
 
     .project-card-title {
-        font-size: 1.15em;
+        font-size: 1.25em;
         font-weight: 700;
         color: var(--text-main);
         word-break: break-word;
-        line-height: 1.4;
+        line-height: 1.3;
+        margin-bottom: 8px;
+    }
+
+    /* 新增：專案描述樣式 */
+    .project-card-desc {
+        font-size: 0.95em;
+        color: var(--text-sub);
+        line-height: 1.5;
+        margin: 0 0 20px 0;
+        flex-grow: 1; /* 佔滿剩餘空間，把按鈕推到底部 */
+        
+        /* 限制最多顯示 3 行，多餘用 ... 省略 */
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .project-card-actions {
         display: flex;
-        gap: 8px;
+        gap: 10px;
         margin-top: auto;
     }
 
@@ -163,9 +180,13 @@
         text-align: center;
         border-radius: 8px;
         font-weight: 600;
-        font-size: 0.95em;
+        font-size: 0.9em;
         transition: all 0.2s ease;
         color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
     }
 
     .page-btn {
@@ -179,18 +200,25 @@
     .page-btn:hover {
         filter: brightness(1.1);
         transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(3, 102, 214, 0.2);
+    }
+
+    .project-card.hf-card .page-btn:hover {
+        box-shadow: 0 4px 8px rgba(248, 150, 23, 0.2);
     }
 
     .code-btn {
-        background-color: var(--code-color);
+        background-color: #f6f8fa;
+        color: var(--code-color);
+        border: 1px solid #d1d5da;
     }
 
     .code-btn:hover {
-        background-color: #444d56;
+        background-color: #e1e4e8;
         transform: translateY(-2px);
     }
 
-    /* === 6. 搜尋結果樣式 === */
+    /* === 6. 搜尋結果樣式 (微調以符合新風格) === */
     .search-box {
         margin: 0 auto 40px auto;
         max-width: 600px;
@@ -231,77 +259,37 @@
 
     .repo-card {
         background-color: var(--card-bg);
-        padding: 20px;
+        padding: 24px;
         border: 1px solid #e1e4e8;
         border-radius: 12px;
         text-align: left;
         text-decoration: none;
         color: var(--text-main);
         transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         position: relative;
-        min-height: 120px;
+        min-height: 140px;
     }
 
     .repo-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
         border-color: var(--primary-color);
     }
 
-    .repo-name { font-size: 1.2em; font-weight: 700; color: var(--primary-color); margin-bottom: 5px; word-break: break-all; }
+    .repo-name { font-size: 1.25em; font-weight: 700; color: var(--primary-color); margin-bottom: 5px; word-break: break-all; }
     .repo-owner { font-size: 0.9em; color: var(--text-sub); margin-bottom: 10px; }
     .repo-stats { margin-top: auto; font-size: 0.9em; color: var(--text-sub); display: flex; align-items: center; }
     .star-icon { color: #f1e05a; margin-right: 5px; }
-
-    /* === 7. Tooltip === */
-    [data-tooltip]:hover::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: 105%;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: rgba(0, 0, 0, 0.85);
-        color: #fff;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 0.85em;
-        white-space: normal;
-        width: max-content;
-        max-width: 240px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        z-index: 100;
-        pointer-events: none;
-        animation: fadeIn 0.3s forwards;
-    }
-
-    [data-tooltip]:hover::before {
-        content: '';
-        position: absolute;
-        bottom: 95%;
-        left: 50%;
-        transform: translateX(-50%);
-        border-width: 6px;
-        border-style: solid;
-        border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
-        z-index: 100;
-        animation: fadeIn 0.3s forwards;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translate(-50%, 10px); }
-        to { opacity: 1; transform: translate(-50%, 0); }
-    }
 
     .message { font-size: 1.2em; color: var(--text-sub); margin-top: 40px; }
 
     @media (max-width: 600px) {
         .search-box { flex-direction: column; padding: 0 10px; }
         .search-btn { width: 100%; }
-        [data-tooltip]:hover::after, [data-tooltip]:hover::before { display: none; }
     }
 </style>
 </head>
@@ -318,7 +306,6 @@
 </div>
 
 <div id="my-projects" class="tab-content active">
-
     <h2 class="section-title"><span style="color:var(--primary-color);">GitHub Pages</span></h2>
     <div id="github-projects-list" class="project-container">
         <div class="message">正在載入...</div>
@@ -375,18 +362,19 @@
     const githubProjectsList = document.getElementById('github-projects-list');
     const huggingfaceSpacesList = document.getElementById('huggingface-spaces-list');
 
-    // 建立專案卡片：含 Page 與 Code 兩個按鈕
+    // 修改版：將描述直接渲染到卡片中，而非藏在 Tooltip 裡
     function createCard(name, pageUrl, codeUrl, description, isHuggingFace = false) {
         const card = document.createElement('div');
         card.className = isHuggingFace ? 'project-card hf-card' : 'project-card';
 
-        const tooltipText = description ? description : "點擊按鈕前往查看";
-        card.setAttribute('data-tooltip', tooltipText);
-        card.title = tooltipText;
-
         const title = document.createElement('div');
         title.className = 'project-card-title';
         title.textContent = name;
+
+        // 新增描述區塊
+        const desc = document.createElement('div');
+        desc.className = 'project-card-desc';
+        desc.textContent = description ? description : '點擊下方按鈕前往查看此專案的詳細內容與原始碼。';
 
         const actions = document.createElement('div');
         actions.className = 'project-card-actions';
@@ -396,18 +384,21 @@
         pageBtn.href = pageUrl;
         pageBtn.target = '_blank';
         pageBtn.rel = 'noopener';
-        pageBtn.textContent = '📄 Page';
+        pageBtn.innerHTML = '📄 前往專案';
 
         const codeBtn = document.createElement('a');
+        pageBtn.className = 'project-card-btn page-btn';
         codeBtn.className = 'project-card-btn code-btn';
         codeBtn.href = codeUrl;
         codeBtn.target = '_blank';
         codeBtn.rel = 'noopener';
-        codeBtn.textContent = '💻 Code';
+        codeBtn.innerHTML = '💻 原始碼';
 
         actions.appendChild(pageBtn);
         actions.appendChild(codeBtn);
+        
         card.appendChild(title);
+        card.appendChild(desc); // 加入描述
         card.appendChild(actions);
 
         return card;
@@ -455,7 +446,7 @@
     }
 
     // ==============================
-    // 2. 全域搜尋（保持原樣）
+    // 2. 全域搜尋
     // ==============================
     const searchResultsList = document.getElementById('search-results-list');
     const searchInput = document.getElementById('search-input');
@@ -494,16 +485,15 @@
                 card.target = '_blank';
 
                 const description = repo.description ? repo.description : "無專案描述";
-                const shortDesc = description.length > 100 ? description.substring(0, 100) + "..." : description;
-                card.setAttribute('data-tooltip', shortDesc);
-                card.title = shortDesc;
+                const shortDesc = description.length > 90 ? description.substring(0, 90) + "..." : description;
 
                 card.innerHTML = `
                     <div>
                         <div class="repo-name">${repo.name}</div>
                         <div class="repo-owner">👤 ${repo.owner.login}</div>
+                        <div class="project-card-desc" style="margin-top:8px;">${shortDesc}</div>
                     </div>
-                    <div class="repo-stats">
+                    <div class="repo-stats" style="margin-top:10px;">
                         <span class="star-icon">★</span> ${formatNumber(repo.stargazers_count)}
                         <span style="margin-left: 15px;">📅 ${new Date(repo.updated_at).toLocaleDateString()}</span>
                     </div>
