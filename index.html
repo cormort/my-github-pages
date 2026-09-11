@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cormort 的專案空間 🌟</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0366d6">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
     /* === 1. 全域基礎設定 === */
     :root {
@@ -518,6 +522,15 @@
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
         if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
         return num;
+    }
+
+    // ==============================
+    // 3. Service Worker (PWA)
+    // ==============================
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js');
+        });
     }
 </script>
 </body>
