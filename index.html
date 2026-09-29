@@ -444,7 +444,12 @@
         { name: '工作管理', re: /timeline|scheduler|strategy|task_|quickboard|管理|策略/ },
     ];
     const OTHER_CATEGORY = '其他';
-    function categorize(text) {
+    // 關鍵字分錯時，在這裡依專案名稱指定分類
+    const CATEGORY_OVERRIDES = {
+        'word_docx_editor_pdf': 'Excel / 文件',
+    };
+    function categorize(name, text) {
+        if (CATEGORY_OVERRIDES[name]) return CATEGORY_OVERRIDES[name];
         const t = text.toLowerCase();
         const hit = CATEGORIES.find(c => c.re.test(t));
         return hit ? hit.name : OTHER_CATEGORY;
@@ -453,7 +458,7 @@
     function createCard(name, pageUrl, codeUrl, description, isHuggingFace = false) {
         const card = document.createElement('div');
         card.className = isHuggingFace ? 'project-card hf-card' : 'project-card';
-        card.dataset.category = categorize(`${name} ${description || ''} ${pageUrl}`);
+        card.dataset.category = categorize(name, `${name} ${description || ''} ${pageUrl}`);
 
         const title = document.createElement('div');
         title.className = 'project-card-title';
