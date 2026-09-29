@@ -313,6 +313,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     font-size: 0.95rem;
 }
+.project-card[hidden], #filter-empty[hidden] { display: none; }
 #update-banner[hidden] { display: none; }
 #update-banner button {
     padding: 0.35rem 1rem;
@@ -347,6 +348,10 @@
 </div>
 
 <div id="my-projects" class="tab-content active">
+    <div class="search-box">
+        <input type="search" id="project-filter" placeholder="🔍 篩選我的專案名稱或說明...">
+    </div>
+    <div id="filter-empty" class="message" hidden>找不到符合的專案</div>
     <h2 class="section-title"><span style="color:var(--primary-color);">GitHub Pages</span></h2>
     <div id="github-projects-list" class="project-container">
         <div class="message">正在載入...</div>
@@ -551,6 +556,19 @@
         if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
         return num;
     }
+
+    // ==============================
+    // 篩選我的專案（卡片為動態產生，於輸入時即時比對）
+    // ==============================
+    document.getElementById('project-filter').addEventListener('input', e => {
+        const q = e.target.value.trim().toLowerCase();
+        let shown = 0;
+        document.querySelectorAll('#my-projects .project-card').forEach(card => {
+            card.hidden = q && !card.textContent.toLowerCase().includes(q);
+            if (!card.hidden) shown++;
+        });
+        document.getElementById('filter-empty').hidden = shown > 0;
+    });
 
     // ==============================
     // 3. Service Worker (PWA)
