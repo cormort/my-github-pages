@@ -314,6 +314,28 @@
     font-size: 0.95rem;
 }
 .project-card[hidden], #filter-empty[hidden] { display: none; }
+.category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: -24px auto 32px auto;
+    max-width: 800px;
+}
+.category-chip {
+    padding: 6px 14px;
+    border: 1px solid #dee2e6;
+    border-radius: 999px;
+    background: #fff;
+    color: #586069;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.category-chip.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
 #update-banner[hidden] { display: none; }
 #update-banner button {
     padding: 0.35rem 1rem;
@@ -349,8 +371,9 @@
 
 <div id="my-projects" class="tab-content active">
     <div class="search-box">
-        <input type="search" id="project-filter" placeholder="🔍 篩選我的專案名稱或說明...">
+        <input type="text" id="project-filter" placeholder="🔍 篩選我的專案名稱或說明...">
     </div>
+    <div id="category-chips" class="category-chips"></div>
     <div id="filter-empty" class="message" hidden>找不到符合的專案</div>
     <h2 class="section-title"><span style="color:var(--primary-color);">GitHub Pages</span></h2>
     <div id="github-projects-list" class="project-container">
@@ -409,9 +432,28 @@
     const huggingfaceSpacesList = document.getElementById('huggingface-spaces-list');
 
     // 修改版：將描述直接渲染到卡片中，而非藏在 Tooltip 裡
+    // 依名稱、說明、網址的關鍵字自動分類（由上而下，先符合者優先），新專案不需手動維護
+    const CATEGORIES = [
+        { name: '預算財務', re: /budget|fund|fs_|cashflow|sumcheck|預算|基金|財務|勾稽/ },
+        { name: 'PDF 工具', re: /pdf/ },
+        { name: 'AI 與影音', re: /ai-|gemini|llm|mlx|prompt|voice|whisper|ivod|ocr|remove-bg|去背|pitch|image|scan|語音|影像|圖像/ },
+        { name: '數據分析', re: /time-ser|rice-price|stock|chart|api-fetcher|採購|股價|視覺化|預測|圖表/ },
+        { name: 'Excel / 文件', re: /excel|xls|docx|word|epub|json|xml|html|slide|report|試算|表格|文件/ },
+        { name: '遊戲', re: /game|survivor|tank|meowdoku|candy|sorting-water|meme|遊戲|謎題/ },
+        { name: '學習', re: /learning|geometry|essay|guwen|scholar|binary-cpu|作文|學習/ },
+        { name: '工作管理', re: /timeline|scheduler|strategy|task_|quickboard|管理|策略/ },
+    ];
+    const OTHER_CATEGORY = '其他';
+    function categorize(text) {
+        const t = text.toLowerCase();
+        const hit = CATEGORIES.find(c => c.re.test(t));
+        return hit ? hit.name : OTHER_CATEGORY;
+    }
+
     function createCard(name, pageUrl, codeUrl, description, isHuggingFace = false) {
         const card = document.createElement('div');
         card.className = isHuggingFace ? 'project-card hf-card' : 'project-card';
+        card.dataset.category = categorize(`${name} ${description || ''} ${pageUrl}`);
 
         const title = document.createElement('div');
         title.className = 'project-card-title';
@@ -560,14 +602,32 @@
     // ==============================
     // 篩選我的專案（卡片為動態產生，於輸入時即時比對）
     // ==============================
-    document.getElementById('project-filter').addEventListener('input', e => {
-        const q = e.target.value.trim().toLowerCase();
+    let activeCategory = '';
+    function applyFilter() {
+        const q = document.getElementById('project-filter').value.trim().toLowerCase();
         let shown = 0;
         document.querySelectorAll('#my-projects .project-card').forEach(card => {
-            card.hidden = q && !card.textContent.toLowerCase().includes(q);
+            const matchCat = !activeCategory || card.dataset.category === activeCategory;
+            const matchText = !q || card.textContent.toLowerCase().includes(q);
+            card.hidden = !(matchCat && matchText);
             if (!card.hidden) shown++;
         });
         document.getElementById('filter-empty').hidden = shown > 0;
+    }
+    document.getElementById('project-filter').addEventListener('input', applyFilter);
+
+    const chipsBox = document.getElementById('category-chips');
+    ['', ...CATEGORIES.map(c => c.name), OTHER_CATEGORY].forEach(cat => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'category-chip' + (cat ? '' : ' active');
+        chip.textContent = cat || '全部';
+        chip.addEventListener('click', () => {
+            chipsBox.querySelectorAll('.category-chip').forEach(c => c.classList.toggle('active', c === chip));
+            activeCategory = cat;
+            applyFilter();
+        });
+        chipsBox.appendChild(chip);
     });
 
     // ==============================

@@ -1,5 +1,5 @@
 // 每次發布新版請修改 VERSION，瀏覽器偵測到 sw.js 變動才會通知使用者更新
-const VERSION = '2026-09-29-1';
+const VERSION = '2026-09-29-2';
 const CACHE_NAME = `cormort-site-${VERSION}`;
 const CORE_ASSETS = [
   './',
