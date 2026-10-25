@@ -21,24 +21,29 @@
     }
 
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         background-color: var(--bg-color);
         color: var(--text-main);
         margin: 0;
-        padding: 20px;
+        padding: 24px 32px;
         text-align: center;
         min-height: 100vh;
+        width: 100%;
     }
 
-    /* === 2. 標題區 === */
+    * {
+        box-sizing: border-box;
+    }
+
+    /* === 2. 標題區（滿版延伸） === */
     .header {
-        margin-bottom: 30px;
-        padding: 30px 20px;
+        margin-bottom: 24px;
+        padding: 28px 24px;
         background-color: var(--card-bg);
         border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        max-width: 1000px;
-        margin: 20px auto 30px auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        width: 100%;
+        margin: 10px auto 24px auto;
     }
 
     h1 {
@@ -55,8 +60,8 @@
 
     /* === 3. 頁籤 === */
     .tabs-container {
-        max-width: 1000px;
-        margin: 0 auto 30px auto;
+        width: 100%;
+        margin: 0 auto 24px auto;
         display: flex;
         justify-content: center;
         gap: 15px;
@@ -91,6 +96,7 @@
     .tab-content {
         display: none;
         animation: fadeInContent 0.4s ease;
+        width: 100%;
     }
 
     .tab-content.active {
@@ -102,14 +108,14 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* === 4. 卡片容器 === */
+    /* === 4. 卡片容器（全寬自適應網格） === */
     .project-container {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 24px; /* 加大一點間距 */
-        max-width: 1200px;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        width: 100%;
         margin: 0 auto;
-        padding: 0 10px;
+        padding: 0;
     }
 
     .section-title {
@@ -224,10 +230,11 @@
 
     /* === 6. 搜尋結果樣式 (微調以符合新風格) === */
     .search-box {
-        margin: 0 auto 40px auto;
-        max-width: 600px;
+        margin: 0 auto 24px auto;
+        width: 100%;
+        max-width: 800px;
         display: flex;
-        gap: 10px;
+        gap: 12px;
     }
 
     input[type="text"] {
@@ -256,6 +263,49 @@
         transition: transform 0.2s, background-color 0.3s;
     }
 
+    
+    .search-btn.btn-active {
+        background-color: #d73a49;
+    }
+    .search-btn.btn-active:hover {
+        background-color: #cb2431;
+    }
+
+    /* === 狀態通知橫幅（備援/快取提示） === */
+    .status-banner {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 0 auto 20px auto;
+        padding: 12px 20px;
+        background-color: #fff8c5;
+        border: 1px solid #e3b341;
+        border-radius: 10px;
+        color: #735c0f;
+        font-size: 0.95em;
+        text-align: left;
+        width: 100%;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .status-banner.show {
+        display: flex;
+    }
+    .status-banner-btn {
+        padding: 6px 14px;
+        border: 1px solid #d1d5da;
+        border-radius: 6px;
+        background-color: #ffffff;
+        color: #24292e;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.85em;
+        white-space: nowrap;
+        transition: background 0.2s;
+    }
+    .status-banner-btn:hover {
+        background-color: #f3f4f6;
+    }
     .search-btn:hover {
         background-color: #2c974b;
         transform: translateY(-2px);
@@ -320,7 +370,7 @@
     justify-content: center;
     gap: 8px;
     margin: -24px auto 32px auto;
-    max-width: 800px;
+    max-width: 100%;
 }
 .category-chip {
     padding: 6px 14px;
@@ -370,6 +420,10 @@
 </div>
 
 <div id="my-projects" class="tab-content active">
+    <div id="api-status-banner" class="status-banner">
+        <span id="api-status-text"></span>
+        <button class="status-banner-btn" onclick="loadGitHubProjects(true)">重試同步</button>
+    </div>
     <div class="search-box">
         <input type="text" id="project-filter" placeholder="🔍 篩選我的專案名稱或說明...">
     </div>
@@ -391,7 +445,7 @@
 
     <div class="search-box">
         <input type="text" id="search-input" placeholder="輸入關鍵字 (例：python crawler, budget)...">
-        <button class="search-btn" onclick="searchRepos()">搜尋</button>
+        <button class="search-btn" id="search-btn" onclick="handleSearchClick()">搜尋</button>
     </div>
 
     <div id="search-results-list" class="project-container">
@@ -416,6 +470,527 @@
     const GITHUB_USERNAME = 'cormort';
     const API_URL = `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&direction=desc&per_page=100`;
     const PAGES_BASE_URL = `https://${GITHUB_USERNAME}.github.io`;
+    const CACHE_KEY = 'cormort_github_repos_v2';
+
+    // 內建完整專案靜態備援清單（當 GitHub API 限速或離線時秒開展示，絕不白屏或報錯）
+    const STATIC_GITHUB_REPOS = [
+    {
+        "name": "voice_to_text",
+        "description": "即時語音轉文字，建議使用筆電laptop。",
+        "html_url": "https://github.com/cormort/voice_to_text",
+        "page_url": "https://cormort.github.io/voice_to_text/"
+    },
+    {
+        "name": "local_gov_budget",
+        "description": "自訂表單查填彙整（範本庫、調查專案、線上/Excel查填、防重填檢查與彙整匯出）。",
+        "html_url": "https://github.com/cormort/local_gov_budget",
+        "page_url": "https://cormort.github.io/local_gov_budget/"
+    },
+    {
+        "name": "ppt-layout-generator",
+        "description": "圖片排版產生器：上傳圖片、選範本、輸入文字，產生 PPT 形狀裁切排版 PNG",
+        "html_url": "https://github.com/cormort/ppt-layout-generator",
+        "page_url": "https://cormort.github.io/ppt-layout-generator/"
+    },
+    {
+        "name": "tw-county-map",
+        "description": "台灣縣市地圖：22 個縣市的人口、面積、選舉結果、立委與議員（純靜態快照站）",
+        "html_url": "https://github.com/cormort/tw-county-map",
+        "page_url": "https://cormort.github.io/tw-county-map/"
+    },
+    {
+        "name": "html_generator",
+        "description": "快速生成標準 HTML 結構與版型的自動化生成器。",
+        "html_url": "https://github.com/cormort/html_generator",
+        "page_url": "https://cormort.github.io/html_generator/"
+    },
+    {
+        "name": "cormort.github.io",
+        "description": "個人作品集與專案空間總入口導航",
+        "html_url": "https://github.com/cormort/cormort.github.io",
+        "page_url": "https://cormort.github.io/cormort.github.io/"
+    },
+    {
+        "name": "cb-budget-parser",
+        "description": "中央銀行預算書 PDF 解析工具（純前端單檔）：還原無 ToUnicode 字型的亂碼，抽出各預算表為可篩選、可匯出 xlsx 的表格",
+        "html_url": "https://github.com/cormort/cb-budget-parser",
+        "page_url": "https://cormort.github.io/cb-budget-parser/"
+    },
+    {
+        "name": "budget-pdf-parser",
+        "description": "直接從農業特別收入基金預算書PDF擷取表格資料，免手動繕打即可取得可分析資料。",
+        "html_url": "https://github.com/cormort/budget-pdf-parser",
+        "page_url": "https://cormort.github.io/budget-pdf-parser/"
+    },
+    {
+        "name": "local-budget-parser",
+        "description": "解析地方政府單位預算書pdf檔案，轉換為結構化資料以利後續彙整與查詢。",
+        "html_url": "https://github.com/cormort/local-budget-parser",
+        "page_url": "https://cormort.github.io/local-budget-parser/"
+    },
+    {
+        "name": "unit-budget-parser",
+        "description": "單位預算「歲出計畫提要及分支計畫概況表」PDF 解析工具：純前端、不上傳檔案、內建上下合計驗算",
+        "html_url": "https://github.com/cormort/unit-budget-parser",
+        "page_url": "https://cormort.github.io/unit-budget-parser/"
+    },
+    {
+        "name": "LawsGraphify",
+        "description": "臺灣歲計會計法規引用查詢：輸入條文，列出所有引用它的條文",
+        "html_url": "https://github.com/cormort/LawsGraphify",
+        "page_url": "https://cormort.github.io/LawsGraphify/"
+    },
+    {
+        "name": "pdf-row-shifter",
+        "description": "瀏覽器裡直接調整 PDF 表格的分頁位置，保留原版面與框線。單一 HTML 檔，檔案不上傳。Browser-only PDF table row/page-break editor.",
+        "html_url": "https://github.com/cormort/pdf-row-shifter",
+        "page_url": "https://cormort.github.io/pdf-row-shifter/"
+    },
+    {
+        "name": "fund-financial-statement",
+        "description": "中央政府特種基金AI智能分析平台，上傳十年表json檔。",
+        "html_url": "https://github.com/cormort/fund-financial-statement",
+        "page_url": "https://cormort.github.io/fund-financial-statement/"
+    },
+    {
+        "name": "word-table-extractor",
+        "description": "Word 表格提取與多檔合併工具",
+        "html_url": "https://github.com/cormort/word-table-extractor",
+        "page_url": "https://cormort.github.io/word-table-extractor/"
+    },
+    {
+        "name": "multi-xlsx_merge",
+        "description": "一次彙整相同版型（相同範圍） Excel 工作表（自動偵測資料範圍），如摘要表。",
+        "html_url": "https://github.com/cormort/multi-xlsx_merge",
+        "page_url": "https://cormort.github.io/multi-xlsx_merge/"
+    },
+    {
+        "name": "excel_merge",
+        "description": "將多個 Excel 檔案自動合併（主要在資料清理）",
+        "html_url": "https://github.com/cormort/excel_merge",
+        "page_url": "https://cormort.github.io/excel_merge/"
+    },
+    {
+        "name": "subunit-budget-tool",
+        "description": "基金資料庫與分析說明產生器，建立結構化資料庫、跨年度勾稽與收支數字提取。",
+        "html_url": "https://github.com/cormort/subunit-budget-tool",
+        "page_url": "https://cormort.github.io/subunit-budget-tool/"
+    },
+    {
+        "name": "ly-dashboard",
+        "description": "立法院資訊與數據視覺化儀表板",
+        "html_url": "https://github.com/cormort/ly-dashboard",
+        "page_url": "https://cormort.github.io/ly-dashboard/"
+    },
+    {
+        "name": "excel-validator",
+        "description": "快速驗算excel欄、列合計數正確性，支援跳欄、列或連續選取，秒抓算術與加總錯誤。",
+        "html_url": "https://github.com/cormort/excel-validator",
+        "page_url": "https://cormort.github.io/excel-validator/"
+    },
+    {
+        "name": "time-sereis",
+        "description": "簡易的時間序列預測",
+        "html_url": "https://github.com/cormort/time-sereis",
+        "page_url": "https://cormort.github.io/time-sereis/"
+    },
+    {
+        "name": "json_xml_reader",
+        "description": "快速解析與視覺化 JSON/XML 結構資料的閱讀器。",
+        "html_url": "https://github.com/cormort/json_xml_reader",
+        "page_url": "https://cormort.github.io/json_xml_reader/"
+    },
+    {
+        "name": "budget-opinion-reviewer",
+        "description": "預算審核意見表品管員",
+        "html_url": "https://github.com/cormort/budget-opinion-reviewer",
+        "page_url": "https://cormort.github.io/budget-opinion-reviewer/"
+    },
+    {
+        "name": "pdfviewer_v2",
+        "description": "上傳多個 PDF 檔案，跨檔查找特定關鍵字的頁面，加速資料盤點與重要條文比對。",
+        "html_url": "https://github.com/cormort/pdfviewer_v2",
+        "page_url": "https://cormort.github.io/pdfviewer_v2/"
+    },
+    {
+        "name": "essay-writing-guide",
+        "description": "高分作文解題策略與實例分析 — 涵蓋四維矩陣解題法、國中會考(104-114年)、學測國寫(107-115年)完整範文",
+        "html_url": "https://github.com/cormort/essay-writing-guide",
+        "page_url": "https://cormort.github.io/essay-writing-guide/"
+    },
+    {
+        "name": "the-scholars-path",
+        "description": "古典文學與儒士之道互動閱讀學習平台",
+        "html_url": "https://github.com/cormort/the-scholars-path",
+        "page_url": "https://cormort.github.io/the-scholars-path/"
+    },
+    {
+        "name": "chiptune-audio",
+        "description": "chiptune-audio",
+        "html_url": "https://github.com/cormort/chiptune-audio",
+        "page_url": "https://cormort.github.io/chiptune-audio/"
+    },
+    {
+        "name": "fund-accounting-demo",
+        "description": "中央與地方作業基金會計系統 Demo（靜態版）",
+        "html_url": "https://github.com/cormort/fund-accounting-demo",
+        "page_url": "https://cormort.github.io/fund-accounting-demo/"
+    },
+    {
+        "name": "sorting-water",
+        "description": "水排序益智遊戲（Sorting Water）",
+        "html_url": "https://github.com/cormort/sorting-water",
+        "page_url": "https://cormort.github.io/sorting-water/"
+    },
+    {
+        "name": "Candy_bomb",
+        "description": "Candy Bomb 糖果消除網頁休閒小遊戲",
+        "html_url": "https://github.com/cormort/Candy_bomb",
+        "page_url": "https://cormort.github.io/Candy_bomb/"
+    },
+    {
+        "name": "layer-paint",
+        "description": "網頁輕量圖層繪圖與筆刷塗鴉工具",
+        "html_url": "https://github.com/cormort/layer-paint",
+        "page_url": "https://cormort.github.io/layer-paint/"
+    },
+    {
+        "name": "catmaker",
+        "description": "貓咪夢工廠：美少女夢工廠風的養貓養成遊戲（從 meowdoku 獨立出來）",
+        "html_url": "https://github.com/cormort/catmaker",
+        "page_url": "https://cormort.github.io/catmaker/"
+    },
+    {
+        "name": "ai_illusion_emu",
+        "description": "AI 視覺錯覺與圖樣模擬生成器",
+        "html_url": "https://github.com/cormort/ai_illusion_emu",
+        "page_url": "https://cormort.github.io/ai_illusion_emu/"
+    },
+    {
+        "name": "tank-battle",
+        "description": "經典坦克大戰 HTML5 復刻遊戲",
+        "html_url": "https://github.com/cormort/tank-battle",
+        "page_url": "https://cormort.github.io/tank-battle/"
+    },
+    {
+        "name": "meowdoku",
+        "description": "貓咪邏輯謎題：每列／每行／每色塊各 1 隻貓，貓不相鄰；唯一解且純邏輯可解（純前端、可離線）",
+        "html_url": "https://github.com/cormort/meowdoku",
+        "page_url": "https://cormort.github.io/meowdoku/"
+    },
+    {
+        "name": "agri_special_fund_forms",
+        "description": "農業特別收入基金年度預算表單定義與視覺化",
+        "html_url": "https://github.com/cormort/agri_special_fund_forms",
+        "page_url": "https://cormort.github.io/agri_special_fund_forms/"
+    },
+    {
+        "name": "gaga-survivor",
+        "description": "🦆 嘎嘎特攻隊 Gaga Survivor — 純原生 HTML5 Canvas 的 Roguelike 割草遊戲：五位特工、十把進化超武、十一張關卡、塔防砲塔與局外養成",
+        "html_url": "https://github.com/cormort/gaga-survivor",
+        "page_url": "https://cormort.github.io/gaga-survivor/"
+    },
+    {
+        "name": "jason-ods-decoder",
+        "description": "捷成公文系統 .ods 檔解碼器（瀏覽器內執行，檔案不上傳）",
+        "html_url": "https://github.com/cormort/jason-ods-decoder",
+        "page_url": "https://cormort.github.io/jason-ods-decoder/"
+    },
+    {
+        "name": "xlsx2webform",
+        "description": "XLSX to editable web form with publish/fill flow",
+        "html_url": "https://github.com/cormort/xlsx2webform",
+        "page_url": "https://cormort.github.io/xlsx2webform/"
+    },
+    {
+        "name": "dragon-zakura-anki",
+        "description": "龍櫻英文 100 句 ANKI 閃卡（中英對照）",
+        "html_url": "https://github.com/cormort/dragon-zakura-anki",
+        "page_url": "https://cormort.github.io/dragon-zakura-anki/"
+    },
+    {
+        "name": "fund-month-dashboard",
+        "description": "特種基金月報會計資料與預算執行率視覺化儀表板",
+        "html_url": "https://github.com/cormort/fund-month-dashboard",
+        "page_url": "https://cormort.github.io/fund-month-dashboard/"
+    },
+    {
+        "name": "link-grabber",
+        "description": "link-grabber",
+        "html_url": "https://github.com/cormort/link-grabber",
+        "page_url": "https://cormort.github.io/link-grabber/"
+    },
+    {
+        "name": "get_gemini_model",
+        "description": "get the name of gemini model",
+        "html_url": "https://github.com/cormort/get_gemini_model",
+        "page_url": "https://cormort.github.io/get_gemini_model/"
+    },
+    {
+        "name": "batch-image-compressor",
+        "description": "batch-image-compressor",
+        "html_url": "https://github.com/cormort/batch-image-compressor",
+        "page_url": "https://cormort.github.io/batch-image-compressor/"
+    },
+    {
+        "name": "Rubi-Cube",
+        "description": "圖論魔術方塊 - 雙模旗艦版 (interactive graph-theory magic cube web app)",
+        "html_url": "https://github.com/cormort/Rubi-Cube",
+        "page_url": "https://cormort.github.io/Rubi-Cube/"
+    },
+    {
+        "name": "word_docx_editor_pdf",
+        "description": "簡易word編輯器",
+        "html_url": "https://github.com/cormort/word_docx_editor_pdf",
+        "page_url": "https://cormort.github.io/word_docx_editor_pdf/"
+    },
+    {
+        "name": "quickboard",
+        "description": "快速便簽與靈感看板工具",
+        "html_url": "https://github.com/cormort/quickboard",
+        "page_url": "https://cormort.github.io/quickboard/"
+    },
+    {
+        "name": "meme-sound-card",
+        "description": "趣味迷因音效卡與即時音效按鈕",
+        "html_url": "https://github.com/cormort/meme-sound-card",
+        "page_url": "https://cormort.github.io/meme-sound-card/"
+    },
+    {
+        "name": "guwen_guanzhi",
+        "description": "古文觀止全文閱讀、註釋白話翻譯與檢索系統",
+        "html_url": "https://github.com/cormort/guwen_guanzhi",
+        "page_url": "https://cormort.github.io/guwen_guanzhi/"
+    },
+    {
+        "name": "mo_epub_reader",
+        "description": "epub reader",
+        "html_url": "https://github.com/cormort/mo_epub_reader",
+        "page_url": "https://cormort.github.io/mo_epub_reader/"
+    },
+    {
+        "name": "rice-price-tw",
+        "description": "台灣糧價與公糧收購互動分析（民國 99–115 年）— 稻穀市價、白米零售/躉售價格 vs 公糧三級收購價與收購量的互動網站",
+        "html_url": "https://github.com/cormort/rice-price-tw",
+        "page_url": "https://cormort.github.io/rice-price-tw/"
+    },
+    {
+        "name": "pdf-content-shifter",
+        "description": "PDF 原座標分頁調整器：以原始頁面影像切成水平內容帶，不重排字調整跨頁位置。單一 HTML 檔，檔案不上傳。",
+        "html_url": "https://github.com/cormort/pdf-content-shifter",
+        "page_url": "https://cormort.github.io/pdf-content-shifter/"
+    },
+    {
+        "name": "geometry-lab",
+        "description": "互動式幾何模型實驗室：國小到國中 19 個幾何主題的動態探索工具",
+        "html_url": "https://github.com/cormort/geometry-lab",
+        "page_url": "https://cormort.github.io/geometry-lab/"
+    },
+    {
+        "name": "fund-doc-db",
+        "description": "基金法規與公文知識庫查詢系統",
+        "html_url": "https://github.com/cormort/fund-doc-db",
+        "page_url": "https://cormort.github.io/fund-doc-db/"
+    },
+    {
+        "name": "excel-chart-viewer",
+        "description": "在瀏覽器裡讀取 Excel/CSV 並產生互動圖表與可排序資料表格的單一 HTML 工具（SheetJS + Apache ECharts）",
+        "html_url": "https://github.com/cormort/excel-chart-viewer",
+        "page_url": "https://cormort.github.io/excel-chart-viewer/"
+    },
+    {
+        "name": "diffpdf-web",
+        "description": "在瀏覽器內比對兩個 PDF（Words / Characters / Appearance）",
+        "html_url": "https://github.com/cormort/diffpdf-web",
+        "page_url": "https://cormort.github.io/diffpdf-web/"
+    },
+    {
+        "name": "binary-cpu-sim",
+        "description": "二進位 CPU 運算指令與邏輯閘線上模擬器",
+        "html_url": "https://github.com/cormort/binary-cpu-sim",
+        "page_url": "https://cormort.github.io/binary-cpu-sim/"
+    },
+    {
+        "name": "pdf_recompose",
+        "description": "PDF頁面重組器，可一次載入多個檔案，重新組合，產生新檔（可自動產生新的目次）",
+        "html_url": "https://github.com/cormort/pdf_recompose",
+        "page_url": "https://cormort.github.io/pdf_recompose/"
+    },
+    {
+        "name": "VoiceTwInk",
+        "description": "Privacy-auditable VoiceInk fork tuned for Traditional Chinese (Taiwan) voice input on macOS.",
+        "html_url": "https://github.com/cormort/VoiceTwInk",
+        "page_url": "https://cormort.github.io/VoiceTwInk/"
+    },
+    {
+        "name": "strategy_toolkit",
+        "description": "策略分析與規劃輔助工具 (如 SWOT、PESTLE 分析等)。",
+        "html_url": "https://github.com/cormort/strategy_toolkit",
+        "page_url": "https://cormort.github.io/strategy_toolkit/"
+    },
+    {
+        "name": "document-llm-analysis",
+        "description": "document-llm-analysis 專案空間",
+        "html_url": "https://github.com/cormort/document-llm-analysis",
+        "page_url": "https://cormort.github.io/document-llm-analysis/"
+    },
+    {
+        "name": "xls2spread",
+        "description": "把固資成本效益分析表這類 Excel 轉成天地線固定的奇偶頁對開表，可逐列手動調列高後直接列印成 PDF",
+        "html_url": "https://github.com/cormort/xls2spread",
+        "page_url": "https://cormort.github.io/xls2spread/"
+    },
+    {
+        "name": "pic-calculator",
+        "description": "圖片計算器：拍照/上傳圖片 OCR 辨識表格並驗算（FastAPI + PaddleOCR，支援 PWA）",
+        "html_url": "https://github.com/cormort/pic-calculator",
+        "page_url": "https://cormort.github.io/pic-calculator/"
+    },
+    {
+        "name": "learning_toolkit",
+        "description": "個人學習資源庫與輔助學習的小工具集合。",
+        "html_url": "https://github.com/cormort/learning_toolkit",
+        "page_url": "https://cormort.github.io/learning_toolkit/"
+    },
+    {
+        "name": "slide_html_gen",
+        "description": "將文字內容自動轉換為網頁版簡報 (HTML Slides) 的工具。",
+        "html_url": "https://github.com/cormort/slide_html_gen",
+        "page_url": "https://cormort.github.io/slide_html_gen/"
+    },
+    {
+        "name": "univ-cashflow-crosscheck",
+        "description": "大學現金流量表勾稽底稿產生器：上傳預計平衡表與現金流量預計表，在瀏覽器裡產生總表+47校明細的勾稽底稿（Pyodide，檔案不上傳）",
+        "html_url": "https://github.com/cormort/univ-cashflow-crosscheck",
+        "page_url": "https://cormort.github.io/univ-cashflow-crosscheck/"
+    },
+    {
+        "name": "web-elements",
+        "description": "Web 元件視覺字典",
+        "html_url": "https://github.com/cormort/web-elements",
+        "page_url": "https://cormort.github.io/web-elements/"
+    },
+    {
+        "name": "task_management_toolkit",
+        "description": "專案任務追蹤、進度管理與待辦事項工具組。",
+        "html_url": "https://github.com/cormort/task_management_toolkit",
+        "page_url": "https://cormort.github.io/task_management_toolkit/"
+    },
+    {
+        "name": "pdfviewer_en",
+        "description": "英文 PDF 多檔查找與全文關鍵字檢索閱讀器",
+        "html_url": "https://github.com/cormort/pdfviewer_en",
+        "page_url": "https://cormort.github.io/pdfviewer_en/"
+    },
+    {
+        "name": "report-builder",
+        "description": "專業報表設計工具，支援拖放式設計、資料匯入與公式計算",
+        "html_url": "https://github.com/cormort/report-builder",
+        "page_url": "https://cormort.github.io/report-builder/"
+    },
+    {
+        "name": "remove-bg",
+        "description": "影像去背",
+        "html_url": "https://github.com/cormort/remove-bg",
+        "page_url": "https://cormort.github.io/remove-bg/"
+    },
+    {
+        "name": "my-timeline",
+        "description": "專案管理",
+        "html_url": "https://github.com/cormort/my-timeline",
+        "page_url": "https://cormort.github.io/my-timeline/"
+    },
+    {
+        "name": "pdf-column-regnition",
+        "description": "PDF 多欄位排版智慧辨識與精準抽取工具",
+        "html_url": "https://github.com/cormort/pdf-column-regnition",
+        "page_url": "https://cormort.github.io/pdf-column-regnition/"
+    },
+    {
+        "name": "html-wasm-engine",
+        "description": "簡易html編輯器",
+        "html_url": "https://github.com/cormort/html-wasm-engine",
+        "page_url": "https://cormort.github.io/html-wasm-engine/"
+    },
+    {
+        "name": "general-api-fetcher",
+        "description": "通用型 API 資料抓取與串接工具，自動化數據收集。",
+        "html_url": "https://github.com/cormort/general-api-fetcher",
+        "page_url": "https://cormort.github.io/general-api-fetcher/"
+    },
+    {
+        "name": "docx_track_changes",
+        "description": "Word (Docx) 修訂追蹤比對與文字變更提取工具",
+        "html_url": "https://github.com/cormort/docx_track_changes",
+        "page_url": "https://cormort.github.io/docx_track_changes/"
+    },
+    {
+        "name": "Word-Author-Name-Replacer",
+        "description": "Word 文件作者姓名批次替換與隱私脫敏工具",
+        "html_url": "https://github.com/cormort/Word-Author-Name-Replacer",
+        "page_url": "https://cormort.github.io/Word-Author-Name-Replacer/"
+    },
+    {
+        "name": "green_budget_assement",
+        "description": "綠色預算效益評估與指標分析工具",
+        "html_url": "https://github.com/cormort/green_budget_assement",
+        "page_url": "https://cormort.github.io/green_budget_assement/"
+    },
+    {
+        "name": "SumCheck",
+        "description": "智能 Excel 數值驗算工具，自動檢查合計與小計錯誤",
+        "html_url": "https://github.com/cormort/SumCheck",
+        "page_url": "https://cormort.github.io/SumCheck/"
+    },
+    {
+        "name": "FS_Impact_Analysis",
+        "description": "財務報表重大變動影響分析與情境模擬估算工具",
+        "html_url": "https://github.com/cormort/FS_Impact_Analysis",
+        "page_url": "https://cormort.github.io/FS_Impact_Analysis/"
+    },
+    {
+        "name": "AI-Slides-Prompt",
+        "description": "專門用於生成簡報架構與內容的 AI 提示詞庫。",
+        "html_url": "https://github.com/cormort/AI-Slides-Prompt",
+        "page_url": "https://cormort.github.io/AI-Slides-Prompt/"
+    },
+    {
+        "name": "Band-Duty-Scheduler",
+        "description": "樂團排班與勤務值班自動排程小幫手",
+        "html_url": "https://github.com/cormort/Band-Duty-Scheduler",
+        "page_url": "https://cormort.github.io/Band-Duty-Scheduler/"
+    },
+    {
+        "name": "AI-Prompt-Engineering",
+        "description": "探索與優化 LLM 提示工程 (Prompt Engineering) 的實驗與筆記。",
+        "html_url": "https://github.com/cormort/AI-Prompt-Engineering",
+        "page_url": "https://cormort.github.io/AI-Prompt-Engineering/"
+    },
+    {
+        "name": "FS_Sum",
+        "description": "財務報表跨期加總與勾稽驗算工具",
+        "html_url": "https://github.com/cormort/FS_Sum",
+        "page_url": "https://cormort.github.io/FS_Sum/"
+    },
+    {
+        "name": "Html-Analyzer",
+        "description": "HTML 原始碼結構分析、SEO 與標籤合規性檢查器",
+        "html_url": "https://github.com/cormort/Html-Analyzer",
+        "page_url": "https://cormort.github.io/Html-Analyzer/"
+    },
+    {
+        "name": "mlx-swarm-cache",
+        "description": "mlx-swarm-cache",
+        "html_url": "https://github.com/cormort/mlx-swarm-cache",
+        "page_url": "https://cormort.github.io/mlx-swarm-cache/"
+    },
+    {
+        "name": "pdf_analyzer_app",
+        "description": "PDF 內容結構分析、文字層與排版視覺化解析應用",
+        "html_url": "https://github.com/cormort/pdf_analyzer_app",
+        "page_url": "https://cormort.github.io/pdf_analyzer_app/"
+    }
+];
 
     const HUGGINGFACE_SPACES = [
         { name: "台灣open資料視覺化儀表板", url: "https://huggingface.co/spaces/cormort/tw_statistic_map", desc: "上傳縣市等欄位之資料可生成台灣視覺化地圖" },
@@ -480,7 +1055,6 @@
         pageBtn.innerHTML = '📄 前往專案';
 
         const codeBtn = document.createElement('a');
-        pageBtn.className = 'project-card-btn page-btn';
         codeBtn.className = 'project-card-btn code-btn';
         codeBtn.href = codeUrl;
         codeBtn.target = '_blank';
@@ -497,34 +1071,125 @@
         return card;
     }
 
-    // 載入 GitHub
-    fetch(API_URL)
-        .then(response => {
-            if (response.status === 403) throw new Error('API 速率限制已達上限。');
-            return response.json();
-        })
-        .then(data => {
-            githubProjectsList.innerHTML = '';
-            if (!Array.isArray(data) || data.length === 0) {
-                githubProjectsList.innerHTML = '<div class="message">找不到任何 GitHub Pages 專案。</div>';
-                return;
+    const apiStatusBanner = document.getElementById('api-status-banner');
+    const apiStatusText = document.getElementById('api-status-text');
+
+    function renderGitHubProjects(reposList) {
+        if (!Array.isArray(reposList) || reposList.length === 0) {
+            githubProjectsList.innerHTML = '<div class="message">找不到任何 GitHub Pages 專案。</div>';
+            return;
+        }
+
+        const EXCLUDED_REPOS = [GITHUB_USERNAME.toLowerCase(), 'my-github-pages'];
+        const fragment = document.createDocumentFragment();
+
+        reposList.forEach(repo => {
+            const name = repo.name;
+            if (EXCLUDED_REPOS.includes(name.toLowerCase())) return;
+
+            const pageUrl = repo.page_url || `${PAGES_BASE_URL}/${name}/`;
+            const codeUrl = repo.html_url || `https://github.com/${GITHUB_USERNAME}/${name}`;
+            const desc = repo.description || repo.desc || '';
+            const card = createCard(name, pageUrl, codeUrl, desc, false);
+            fragment.appendChild(card);
+        });
+
+        githubProjectsList.innerHTML = '';
+        githubProjectsList.appendChild(fragment);
+
+        if (typeof applyFilter === 'function') {
+            applyFilter();
+        }
+    }
+
+    function showNotice(msg) {
+        if (apiStatusBanner && apiStatusText) {
+            apiStatusText.innerHTML = msg;
+            apiStatusBanner.classList.add('show');
+        }
+    }
+
+    function hideNotice() {
+        if (apiStatusBanner) {
+            apiStatusBanner.classList.remove('show');
+        }
+    }
+
+    async function loadGitHubProjects(forceRefresh = false) {
+        let hasRendered = false;
+
+        // 1. 優先從 localStorage 讀取快取（0 秒秒開）
+        try {
+            const cachedRaw = localStorage.getItem(CACHE_KEY);
+            if (cachedRaw) {
+                const cached = JSON.parse(cachedRaw);
+                if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
+                    renderGitHubProjects(cached.data);
+                    hasRendered = true;
+                }
+            }
+        } catch (e) {
+            console.warn('讀取本地快取失敗', e);
+        }
+
+        // 2. 若無本地快取，以靜態內建清單渲染，絕不顯示錯誤
+        if (!hasRendered) {
+            renderGitHubProjects(STATIC_GITHUB_REPOS);
+            hasRendered = true;
+        }
+
+        // 3. 背景非同步向 GitHub API 同步最新專案（Stale-While-Revalidate）
+        try {
+            const response = await fetch(API_URL);
+
+            if (response.status === 403) {
+                const resetTime = response.headers.get('x-ratelimit-reset');
+                let resetStr = '';
+                if (resetTime) {
+                    const d = new Date(parseInt(resetTime, 10) * 1000);
+                    resetStr = `（預計 ${d.toLocaleTimeString()} 自動解除）`;
+                }
+                throw new Error(`GitHub API 目前達到訪客每小時存取限制 ${resetStr}`);
             }
 
-            const EXCLUDED_REPOS = [GITHUB_USERNAME.toLowerCase(), 'my-github-pages'];
+            if (!response.ok) {
+                throw new Error(`GitHub 服務暫時無法連線 (HTTP ${response.status})`);
+            }
 
-            data.forEach(repo => {
-                if (EXCLUDED_REPOS.includes(repo.name.toLowerCase())) return;
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) {
+                const EXCLUDED_REPOS = [GITHUB_USERNAME.toLowerCase(), 'my-github-pages'];
+                const formatted = data
+                    .filter(repo => !EXCLUDED_REPOS.includes(repo.name.toLowerCase()))
+                    .map(repo => ({
+                        name: repo.name,
+                        description: repo.description,
+                        html_url: repo.html_url,
+                        page_url: `${PAGES_BASE_URL}/${repo.name}/`
+                    }));
 
-                const pageUrl = `${PAGES_BASE_URL}/${repo.name}/`;
-                const codeUrl = repo.html_url;
-                const card = createCard(repo.name, pageUrl, codeUrl, repo.description, false);
-                githubProjectsList.appendChild(card);
-            });
-        })
-        .catch(error => {
-            console.error(error);
-            githubProjectsList.innerHTML = `<div class="message">載入失敗。</div>`;
-        });
+                // 更新 localStorage
+                try {
+                    localStorage.setItem(CACHE_KEY, JSON.stringify({
+                        timestamp: Date.now(),
+                        data: formatted
+                    }));
+                } catch (e) {
+                    console.warn('寫入快取失敗', e);
+                }
+
+                // 重新渲染為最新清單
+                renderGitHubProjects(formatted);
+                hideNotice();
+            }
+        } catch (error) {
+            console.warn('GitHub API 同步失敗，維持備援/快取展示:', error.message);
+            showNotice(`⚡ <strong>提醒：</strong>${error.message}。目前已自動切換為本機快取與備援專案清單，各專案功能皆可正常使用。`);
+        }
+    }
+
+    // 啟動 GitHub 專案載入
+    loadGitHubProjects();
 
     // 載入 Hugging Face
     if (HUGGINGFACE_SPACES.length === 0) {
@@ -539,34 +1204,79 @@
     }
 
     // ==============================
-    // 2. 全域搜尋
+    // 2. 全域搜尋（點第 2 次解除查詢）
     // ==============================
     const searchResultsList = document.getElementById('search-results-list');
     const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
 
-    searchInput.addEventListener("keypress", function(event) {
-        if (event.key === "Enter") searchRepos();
+    let isSearchActive = false;
+    let lastSearchQuery = '';
+
+    searchInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            searchRepos();
+        }
     });
+
+    searchInput.addEventListener('input', function() {
+        if (isSearchActive && searchInput.value.trim() !== lastSearchQuery) {
+            isSearchActive = false;
+            updateSearchButtonState();
+        }
+    });
+
+    function handleSearchClick() {
+        const query = searchInput.value.trim();
+        // 若當前處於查詢結果狀態，點第 2 次即解除查詢
+        if (isSearchActive) {
+            resetSearch();
+            return;
+        }
+        searchRepos();
+    }
+
+    function resetSearch() {
+        searchInput.value = '';
+        lastSearchQuery = '';
+        isSearchActive = false;
+        updateSearchButtonState();
+        searchResultsList.innerHTML = '<div class="message">請輸入關鍵字並按下搜尋... 🦕</div>';
+    }
+
+    function updateSearchButtonState() {
+        if (isSearchActive) {
+            searchBtn.textContent = '✕ 解除查詢';
+            searchBtn.classList.add('btn-active');
+        } else {
+            searchBtn.textContent = '搜尋';
+            searchBtn.classList.remove('btn-active');
+        }
+    }
 
     async function searchRepos() {
         const query = searchInput.value.trim();
         if (!query) {
-            alert("請輸入搜尋關鍵字！");
+            alert('請輸入搜尋關鍵字！');
             return;
         }
+
+        isSearchActive = true;
+        lastSearchQuery = query;
+        updateSearchButtonState();
 
         searchResultsList.innerHTML = '<div class="message">正在搜尋 GitHub 資料庫... ⏳</div>';
         const SEARCH_API = `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=12`;
 
         try {
             const response = await fetch(SEARCH_API);
-            if (response.status === 403) throw new Error("搜尋太頻繁，請稍後再試");
-            if (!response.ok) throw new Error("網路連線問題");
+            if (response.status === 403) throw new Error('搜尋太頻繁，請稍後再試');
+            if (!response.ok) throw new Error('網路連線問題');
 
             const data = await response.json();
             searchResultsList.innerHTML = '';
 
-            if (data.items.length === 0) {
+            if (!data.items || data.items.length === 0) {
                 searchResultsList.innerHTML = '<div class="message">找不到相關專案 🦕</div>';
                 return;
             }
@@ -577,8 +1287,8 @@
                 card.href = repo.html_url;
                 card.target = '_blank';
 
-                const description = repo.description ? repo.description : "無專案描述";
-                const shortDesc = description.length > 90 ? description.substring(0, 90) + "..." : description;
+                const description = repo.description ? repo.description : '無專案描述';
+                const shortDesc = description.length > 90 ? description.substring(0, 90) + '...' : description;
 
                 card.innerHTML = `
                     <div>
