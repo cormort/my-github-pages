@@ -1338,8 +1338,15 @@
         chip.className = 'category-chip' + (cat ? '' : ' active');
         chip.textContent = cat || '全部';
         chip.addEventListener('click', () => {
-            chipsBox.querySelectorAll('.category-chip').forEach(c => c.classList.toggle('active', c === chip));
-            activeCategory = cat;
+            if (activeCategory === cat && cat !== '') {
+                // 按第 2 下解除篩選，切換回全部
+                activeCategory = '';
+                const allChip = chipsBox.querySelector('.category-chip');
+                chipsBox.querySelectorAll('.category-chip').forEach(c => c.classList.toggle('active', c === allChip));
+            } else {
+                chipsBox.querySelectorAll('.category-chip').forEach(c => c.classList.toggle('active', c === chip));
+                activeCategory = cat;
+            }
             applyFilter();
         });
         chipsBox.appendChild(chip);
